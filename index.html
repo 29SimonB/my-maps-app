@@ -361,13 +361,14 @@
   const map = new mapboxgl.Map({
     container: 'map',
     style: STYLE_URLS.dark,
-    center: [-74.006, 40.7128],
-    zoom: 13, pitch: 50, bearing: 0, antialias: true
+    center: [6.6145, 51.8382],
+    zoom: 17, pitch: 60, bearing: 0, antialias: true
   });
 
   map.on('load', () => {
     add3DBuildings();
     updateTODPills();
+    loadCustomBuildings();
   });
 
   map.on('click', () => {
@@ -413,6 +414,108 @@
     }
   }
 
+  // ── CUSTOM GLB BUILDINGS ──
+  // Each entry: { geojson: 'filename.json', model: 'filename.glb' }
+  const CUSTOM_BUILDINGS = [
+    { geojson: 'clip_cityhall.json', model: 'cityhall_LOD0-v1.glb' },
+    // Add more buildings here as you upload them:
+    // { geojson: 'clip_building2.json', model: 'building2_LOD0-v1.glb' },
+  ];
+
+  // Base URL — same directory as index.html on GitHub Pages
+  const BASE_URL = window.location.href.replace(/\/[^/]*$/, '/');
+
+  async function loadCustomBuildings() {
+    for (const entry of CUSTOM_BUILDINGS) {
+      try {
+        // 1. Fetch the GeoJSON footprint
+        const res = await fetch(BASE_URL + entry.geojson);
+        const geojson = await res.json();
+
+        // 2. Compute centroid of the first feature's polygon
+        const coords = geojson.features[0].geometry.coordinates[0];
+        const centroid = coords.reduce(
+          (acc, c) => [acc[0] + c[0], acc[1] + c[1]],
+          [0, 0]
+        ).map(v => v / coords.length);
+
+        const modelId = entry.model;
+        const modelUrl = BASE_URL + entry.model;
+
+        // 3. Register the GLB model
+        map.addModel(modelId, modelUrl);
+
+        // 4. Add a GeoJSON source with the centroid as a Point feature
+        //    (Mapbox model layers need a Point geometry for placement)
+        const sourceId = 'src-' + modelId;
+        map.addSource(sourceId, {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: [{
+              type: 'Feature',
+              geometry: { type: 'Point', coordinates: centroid },
+              properties: { modelId }
+            }]
+          }
+        });
+
+        // 5. Add the model layer
+        map.addLayer({
+          id: 'model-' + modelId,
+          type: 'model',
+          source: sourceId,
+          layout: {
+            'model-id': modelId,
+          },
+          paint: {
+            'model-opacity': 1,
+            'model-scale': [1, 1, 1],
+            'model-rotation': [0, 0, 0],
+            'model-translation': [0, 0, 0],
+            'model-cast-shadows': true,
+            'model-receive-shadows': true,
+          }
+        });
+
+        // 6. Hide the matching Mapbox default building footprint
+        //    by filtering it out of the fill-extrusion layer
+        hideDefaultBuilding(geojson);
+
+        console.log(`✅ Loaded: ${modelId} at [${centroid}]`);
+      } catch(e) {
+        console.warn(`⚠️ Could not load ${entry.model}:`, e);
+      }
+    }
+  }
+
+  function hideDefaultBuilding(geojson) {
+    // Get the OSM way ID from the GeoJSON and hide that building
+    // in Mapbox's default building layer
+    const osmId = geojson.features[0]?.properties?.['@id'];
+    if (!osmId) return;
+    const numericId = parseInt(osmId.replace('way/', ''));
+    if (!numericId) return;
+
+    // Hide in our custom fill-extrusion layer if it exists
+    try {
+      const existing = map.getLayer('3d-buildings');
+      if (existing) {
+        const currentFilter = map.getFilter('3d-buildings') || ['==', 'extrude', 'true'];
+        map.setFilter('3d-buildings', [
+          'all',
+          currentFilter,
+          ['!=', ['id'], numericId]
+        ]);
+      }
+    } catch(e) {}
+
+    // Also hide from Mapbox Standard style's built-in building layer
+    try {
+      map.setConfigProperty('basemap', 'hideBuildings', [numericId]);
+    } catch(e) {}
+  }
+
   // ── STYLE SWITCHER ──
   function toggleStyleSheet() {
     const sheet = document.getElementById('style-sheet');
@@ -443,6 +546,8 @@
       if (style !== 'satellite') add3DBuildings();
       // Apply time of day if supported
       if (STYLE_SUPPORTS_TOD[style]) applyTOD(currentTOD);
+      // Re-load custom GLB buildings
+      loadCustomBuildings();
     });
 
     updateTODPills();
