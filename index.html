@@ -18,125 +18,163 @@
       --font: 'DM Sans', -apple-system, sans-serif;
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --safe-top: env(safe-area-inset-top, 0px);
+      --surface: rgba(20,20,22,0.94);
+      --border: rgba(255,255,255,0.10);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     html, body { width: 100%; height: 100%; overflow: hidden; font-family: var(--font); background: #000; }
-
     #map { position: fixed; inset: 0; width: 100%; height: 100%; }
     .mapboxgl-ctrl-attrib, .mapboxgl-ctrl-logo { display: none !important; }
 
-    /* ── FLOATING BUTTONS (top-right) ── */
+    /* ── FAB GROUP ── */
     #fab-group {
       position: fixed;
       right: 18px;
       bottom: calc(var(--safe-bottom) + 110px);
       z-index: 100;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      align-items: center;
+      display: flex; flex-direction: column; gap: 10px; align-items: center;
     }
 
     .fab {
       width: 46px; height: 46px;
       background: rgba(20,20,22,0.82);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255,255,255,0.16);
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
       box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-      transition: transform 0.15s, background 0.15s;
-      font-size: 20px;
-      color: #fff;
+      transition: transform 0.15s, background 0.15s, border-color 0.15s;
+      font-size: 20px; color: #fff;
+      position: relative;
     }
-    .fab:active { transform: scale(0.88); background: rgba(40,40,44,0.95); }
+    .fab:active { transform: scale(0.88); }
+    .fab.active-btn {
+      background: rgba(10,132,255,0.25);
+      border-color: rgba(10,132,255,0.6);
+    }
 
-    /* ── STYLE PICKER SHEET ── */
+    /* ── STYLE SHEET ── */
     #style-sheet {
       position: fixed;
-      left: 16px; right: 16px;
-      bottom: calc(var(--safe-bottom) + 82px);
+      right: 72px;
+      bottom: calc(var(--safe-bottom) + 110px);
       z-index: 103;
-      background: rgba(20,20,22,0.97);
-      backdrop-filter: blur(30px);
-      -webkit-backdrop-filter: blur(30px);
-      border: 1px solid rgba(255,255,255,0.10);
+      width: 270px;
+      background: var(--surface);
+      backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+      border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 6px;
-      box-shadow: 0 -4px 40px rgba(0,0,0,0.6);
+      padding: 8px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.7);
       display: none;
       flex-direction: column;
       gap: 2px;
+      transform-origin: right bottom;
+      animation: popIn 0.2s cubic-bezier(0.32,0.72,0,1);
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.88); }
+      to   { opacity: 1; transform: scale(1); }
     }
     #style-sheet.visible { display: flex; }
 
+    .sheet-section-label {
+      font: 600 11px/1 var(--font);
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 8px 10px 6px;
+    }
+
+    .sheet-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0;
+    }
+
+    /* Style options */
     .style-option {
-      display: flex; align-items: center; gap: 14px;
-      padding: 13px 14px;
-      border-radius: 14px;
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 10px;
+      border-radius: 12px;
       cursor: pointer;
       transition: background 0.12s;
     }
-    .style-option:active { background: rgba(255,255,255,0.07); }
-    .style-option.active { background: rgba(10,132,255,0.18); }
+    .style-option:active { background: rgba(255,255,255,0.06); }
+    .style-option.active { background: rgba(10,132,255,0.15); }
 
     .style-thumb {
-      width: 44px; height: 44px;
-      border-radius: 10px;
-      flex-shrink: 0;
-      overflow: hidden;
-      border: 2px solid rgba(255,255,255,0.1);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
+      width: 40px; height: 40px; border-radius: 10px;
+      flex-shrink: 0; border: 1.5px solid rgba(255,255,255,0.1);
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
     }
-    .style-thumb.dark   { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); }
-    .style-thumb.streets{ background: linear-gradient(135deg, #e8e0d4 0%, #c8bfb4 50%, #a89f94 100%); }
-    .style-thumb.three-d{ background: linear-gradient(135deg, #1a1a2e 0%, #2d2d4e 50%, #3d3d6e 100%); }
-    .style-thumb.satellite{ background: linear-gradient(135deg, #1a3a1a 0%, #2d5a2d 50%, #4a7a4a 100%); }
+    .thumb-dark       { background: linear-gradient(135deg,#1a1a2e,#0f3460); }
+    .thumb-streets    { background: linear-gradient(135deg,#e8e0d4,#a89f94); }
+    .thumb-satellite  { background: linear-gradient(135deg,#1a3a1a,#4a7a4a); }
 
     .style-info { flex: 1; }
-    .style-name { font: 600 15px/1.2 var(--font); color: #fff; }
-    .style-desc { font: 400 12px/1.3 var(--font); color: rgba(255,255,255,0.45); margin-top: 2px; }
+    .style-name { font: 600 14px/1.2 var(--font); color: #fff; }
+    .style-desc { font: 400 11px/1.3 var(--font); color: rgba(255,255,255,0.4); margin-top: 1px; }
 
     .style-check {
-      width: 22px; height: 22px; border-radius: 50%;
+      width: 20px; height: 20px; border-radius: 50%;
       background: #0a84ff;
       display: flex; align-items: center; justify-content: center;
-      font-size: 12px; color: #fff; flex-shrink: 0;
+      font-size: 11px; color: #fff; flex-shrink: 0;
       opacity: 0; transition: opacity 0.15s;
     }
     .style-option.active .style-check { opacity: 1; }
 
-    /* ── BOTTOM SEARCH BAR ── */
+    /* Time-of-day pills */
+    .tod-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 4px 2px 4px;
+    }
+
+    .tod-pill {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .tod-pill:active { background: rgba(255,255,255,0.10); }
+    .tod-pill.active {
+      background: rgba(10,132,255,0.15);
+      border-color: rgba(10,132,255,0.5);
+    }
+    .tod-pill.disabled {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+    .tod-icon { font-size: 16px; }
+    .tod-label { font: 500 13px/1 var(--font); color: #fff; }
+
+    /* ── SEARCH BAR ── */
     #search-bar {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      z-index: 100;
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
       padding: 12px 16px calc(var(--safe-bottom) + 16px);
       background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%);
     }
-
     .search-wrap {
       display: flex; align-items: center; gap: 10px;
       background: rgba(20,20,22,0.88);
-      backdrop-filter: blur(30px) saturate(180%);
-      -webkit-backdrop-filter: blur(30px) saturate(180%);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 18px;
+      backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%);
+      border: 1px solid rgba(255,255,255,0.12); border-radius: 18px;
       padding: 14px 16px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.07) inset;
     }
-
     .search-icon { width: 18px; height: 18px; flex-shrink: 0; color: rgba(255,255,255,0.4); }
-
     #search-input {
       flex: 1; background: none; border: none; outline: none;
       font: 500 16px/1 var(--font); color: #fff; caret-color: #0a84ff;
     }
     #search-input::placeholder { color: rgba(255,255,255,0.35); }
-
     .clear-btn {
       width: 22px; height: 22px; border-radius: 50%;
       background: rgba(255,255,255,0.16); border: none;
@@ -144,31 +182,23 @@
       cursor: pointer; display: none; align-items: center; justify-content: center; flex-shrink: 0;
     }
     .clear-btn.visible { display: flex; }
-    .clear-btn:active { background: rgba(255,255,255,0.26); }
 
     /* ── SUGGESTIONS ── */
     #suggestions {
       position: fixed;
-      bottom: calc(var(--safe-bottom) + 82px);
-      left: 16px; right: 16px;
+      bottom: calc(var(--safe-bottom) + 82px); left: 16px; right: 16px;
       z-index: 101;
-      background: rgba(20,20,22,0.97);
-      backdrop-filter: blur(30px);
-      -webkit-backdrop-filter: blur(30px);
-      border: 1px solid rgba(255,255,255,0.10);
-      border-radius: 18px;
-      overflow: hidden;
-      box-shadow: 0 -4px 40px rgba(0,0,0,0.6);
-      display: none;
-      max-height: 55vh; overflow-y: auto;
+      background: var(--surface);
+      backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+      border: 1px solid var(--border); border-radius: 18px;
+      overflow: hidden; box-shadow: 0 -4px 40px rgba(0,0,0,0.6);
+      display: none; max-height: 55vh; overflow-y: auto;
     }
     #suggestions.visible { display: block; }
-
     .sug-item {
       display: flex; align-items: center; gap: 14px;
       padding: 13px 16px; cursor: pointer;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      transition: background 0.1s;
+      border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.1s;
     }
     .sug-item:last-child { border-bottom: none; }
     .sug-item:active { background: rgba(255,255,255,0.06); }
@@ -178,18 +208,13 @@
 
     /* ── PLACE CARD ── */
     #place-card {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      z-index: 102;
-      background: rgba(20,20,22,0.97);
-      backdrop-filter: blur(30px);
-      -webkit-backdrop-filter: blur(30px);
-      border: 1px solid rgba(255,255,255,0.10);
-      border-radius: 24px 24px 0 0;
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 102;
+      background: var(--surface);
+      backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+      border: 1px solid var(--border); border-radius: 24px 24px 0 0;
       padding: 12px 20px calc(var(--safe-bottom) + 20px);
       box-shadow: 0 -4px 40px rgba(0,0,0,0.6);
-      transform: translateY(100%);
-      transition: transform 0.38s cubic-bezier(0.32,0.72,0,1);
+      transform: translateY(100%); transition: transform 0.38s cubic-bezier(0.32,0.72,0,1);
     }
     #place-card.visible { transform: translateY(0); }
     .card-handle { display: flex; justify-content: center; padding-bottom: 12px; }
@@ -209,13 +234,10 @@
     .go-btn .card-btn-label { color: #fff; }
     .go-btn:active { background: #0071e3; }
 
-    /* ── USER DOT ── */
     .user-dot { width: 18px; height: 18px; background: #0a84ff; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 5px rgba(10,132,255,0.22); }
 
-    /* ── TOAST ── */
     #toast {
-      position: fixed;
-      top: calc(var(--safe-top) + 16px);
+      position: fixed; top: calc(var(--safe-top) + 16px);
       left: 50%; transform: translateX(-50%) translateY(-8px);
       background: rgba(20,20,22,0.95); backdrop-filter: blur(20px);
       border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
@@ -225,22 +247,15 @@
     }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    #overlay { position: fixed; inset: 0; z-index: 102; background: rgba(0,0,0,0.3); display: none; }
+    #overlay.visible { display: block; }
+
     .mapboxgl-popup-content {
-      background: rgba(20,20,22,0.97) !important;
-      border: 1px solid rgba(255,255,255,0.1) !important;
+      background: rgba(20,20,22,0.97) !important; border: 1px solid rgba(255,255,255,0.1) !important;
       border-radius: 12px !important; padding: 10px 14px !important;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
-      color: #fff; font-family: var(--font);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important; color: #fff; font-family: var(--font);
     }
     .mapboxgl-popup-tip { display: none !important; }
-
-    /* dim overlay when style sheet open */
-    #overlay {
-      position: fixed; inset: 0; z-index: 102;
-      background: rgba(0,0,0,0.4);
-      display: none;
-    }
-    #overlay.visible { display: block; }
   </style>
 </head>
 <body>
@@ -249,45 +264,43 @@
 <div id="toast"></div>
 <div id="overlay" onclick="closeStyleSheet()"></div>
 
-<!-- Floating buttons -->
+<!-- FABs -->
 <div id="fab-group">
-  <div class="fab" onclick="locateMe()">📍</div>
-  <div class="fab" onclick="toggleStyleSheet()" id="style-fab">🗺</div>
+  <div class="fab" id="fab-locate" onclick="locateMe()" title="My Location">📍</div>
+  <div class="fab" id="fab-style"  onclick="toggleStyleSheet()" title="Map Style">🗺</div>
+  <div class="fab" id="fab-3d"    onclick="toggle3D()" title="3D Buildings">🏙</div>
 </div>
 
-<!-- Style picker -->
+<!-- Style sheet (pops left of fab) -->
 <div id="style-sheet">
+  <!-- Map style section -->
+  <div class="sheet-section-label">Map Style</div>
+
   <div class="style-option active" id="opt-dark" onclick="setStyle('dark')">
-    <div class="style-thumb dark">🌑</div>
-    <div class="style-info">
-      <div class="style-name">Dark</div>
-      <div class="style-desc">Dark mode map</div>
-    </div>
+    <div class="style-thumb thumb-dark">🌑</div>
+    <div class="style-info"><div class="style-name">Dark</div><div class="style-desc">Dark mode</div></div>
     <div class="style-check">✓</div>
   </div>
   <div class="style-option" id="opt-streets" onclick="setStyle('streets')">
-    <div class="style-thumb streets">🗺</div>
-    <div class="style-info">
-      <div class="style-name">Standard</div>
-      <div class="style-desc">Classic street map</div>
-    </div>
-    <div class="style-check">✓</div>
-  </div>
-  <div class="style-option" id="opt-3d" onclick="setStyle('3d')">
-    <div class="style-thumb three-d">🏙</div>
-    <div class="style-info">
-      <div class="style-name">3D Buildings</div>
-      <div class="style-desc">Dark with extruded buildings</div>
-    </div>
+    <div class="style-thumb thumb-streets">🗺</div>
+    <div class="style-info"><div class="style-name">Standard</div><div class="style-desc">Classic streets</div></div>
     <div class="style-check">✓</div>
   </div>
   <div class="style-option" id="opt-satellite" onclick="setStyle('satellite')">
-    <div class="style-thumb satellite">🛰</div>
-    <div class="style-info">
-      <div class="style-name">Satellite</div>
-      <div class="style-desc">Aerial imagery</div>
-    </div>
+    <div class="style-thumb thumb-satellite">🛰</div>
+    <div class="style-info"><div class="style-name">Satellite</div><div class="style-desc">Aerial imagery</div></div>
     <div class="style-check">✓</div>
+  </div>
+
+  <div class="sheet-divider"></div>
+
+  <!-- Time of day section -->
+  <div class="sheet-section-label">Time of Day</div>
+  <div class="tod-grid" id="tod-grid">
+    <div class="tod-pill active" id="tod-day"   onclick="setTOD('day')">  <span class="tod-icon">☀️</span><span class="tod-label">Day</span></div>
+    <div class="tod-pill"        id="tod-night" onclick="setTOD('night')"><span class="tod-icon">🌙</span><span class="tod-label">Night</span></div>
+    <div class="tod-pill"        id="tod-dawn"  onclick="setTOD('dawn')"> <span class="tod-icon">🌅</span><span class="tod-label">Dawn</span></div>
+    <div class="tod-pill"        id="tod-dusk"  onclick="setTOD('dusk')"> <span class="tod-icon">🌆</span><span class="tod-label">Dusk</span></div>
   </div>
 </div>
 
@@ -312,16 +325,13 @@
   <div class="card-addr" id="card-addr">Address</div>
   <div class="card-actions">
     <div class="card-btn go-btn" onclick="startNav()">
-      <div class="card-btn-icon">🧭</div>
-      <div class="card-btn-label">Go</div>
+      <div class="card-btn-icon">🧭</div><div class="card-btn-label">Go</div>
     </div>
     <div class="card-btn" onclick="toast('Added to Favourites ⭐')">
-      <div class="card-btn-icon">♡</div>
-      <div class="card-btn-label">Save</div>
+      <div class="card-btn-icon">♡</div><div class="card-btn-label">Save</div>
     </div>
     <div class="card-btn" onclick="dismissCard()">
-      <div class="card-btn-icon">✕</div>
-      <div class="card-btn-label">Close</div>
+      <div class="card-btn-icon">✕</div><div class="card-btn-label">Close</div>
     </div>
   </div>
 </div>
@@ -329,24 +339,35 @@
 <script>
   mapboxgl.accessToken = 'pk.eyJ1IjoiMjlzaW1vbmIiLCJhIjoiY21udTlid201MHQ5azJycXl6cW03aHUyZCJ9.H5AM6Zs7Oi8uCvUm8oXIhA';
 
-  const STYLES = {
+  // ── STYLE CONFIG ──
+  // Standard (streets-v12) supports light-preset: day/night/dawn/dusk
+  // Dark and Satellite do not support light presets
+  const STYLE_URLS = {
     dark:      'mapbox://styles/mapbox/dark-v11',
-    streets:   'mapbox://styles/mapbox/streets-v12',
-    '3d':      'mapbox://styles/mapbox/dark-v11',
+    streets:   'mapbox://styles/mapbox/standard',
     satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
   };
 
+  const STYLE_SUPPORTS_TOD = {
+    dark: false,
+    streets: true,
+    satellite: false,
+  };
+
   let currentStyle = 'dark';
+  let currentTOD   = 'day';
+  let buildings3D  = true;
 
   const map = new mapboxgl.Map({
     container: 'map',
-    style: STYLES.dark,
+    style: STYLE_URLS.dark,
     center: [-74.006, 40.7128],
     zoom: 13, pitch: 50, bearing: 0, antialias: true
   });
 
   map.on('load', () => {
     add3DBuildings();
+    updateTODPills();
   });
 
   map.on('click', () => {
@@ -355,7 +376,9 @@
     closeStyleSheet();
   });
 
+  // ── 3D BUILDINGS ──
   function add3DBuildings() {
+    if (!buildings3D) return;
     const layers = map.getStyle().layers;
     const labelLayer = layers.find(l => l.type === 'symbol' && l.layout?.['text-field']);
     try {
@@ -372,18 +395,33 @@
     } catch(e) {}
   }
 
+  function remove3DBuildings() {
+    try { if (map.getLayer('3d-buildings')) map.removeLayer('3d-buildings'); } catch(e) {}
+  }
+
+  function toggle3D() {
+    buildings3D = !buildings3D;
+    const btn = document.getElementById('fab-3d');
+    if (buildings3D) {
+      btn.classList.add('active-btn');
+      add3DBuildings();
+      toast('🏙 3D Buildings on');
+    } else {
+      btn.classList.remove('active-btn');
+      remove3DBuildings();
+      toast('🏢 3D Buildings off');
+    }
+  }
+
   // ── STYLE SWITCHER ──
   function toggleStyleSheet() {
     const sheet = document.getElementById('style-sheet');
-    const overlay = document.getElementById('overlay');
     const isVisible = sheet.classList.contains('visible');
-    if (isVisible) {
-      closeStyleSheet();
-    } else {
+    if (isVisible) { closeStyleSheet(); }
+    else {
       sheet.classList.add('visible');
-      overlay.classList.add('visible');
-      closeSuggestions();
-      dismissCard();
+      document.getElementById('overlay').classList.add('visible');
+      closeSuggestions(); dismissCard();
     }
   }
 
@@ -393,30 +431,55 @@
   }
 
   function setStyle(style) {
-    if (currentStyle === style) { closeStyleSheet(); return; }
     currentStyle = style;
 
-    // Update active indicator
+    // Update active option
     document.querySelectorAll('.style-option').forEach(el => el.classList.remove('active'));
-    document.getElementById('opt-' + (style === '3d' ? '3d' : style)).classList.add('active');
+    document.getElementById('opt-' + style).classList.add('active');
 
-    const styleUrl = STYLES[style];
-    map.setStyle(styleUrl);
-
+    map.setStyle(STYLE_URLS[style]);
     map.once('styledata', () => {
-      // Always try 3D buildings on dark/3d styles
-      if (style === 'dark' || style === '3d') {
-        add3DBuildings();
-      }
-      // For 3D mode, crank up the pitch
-      if (style === '3d') {
-        map.easeTo({ pitch: 60, zoom: 15 });
-      }
+      // Re-apply 3D buildings (dark / streets only — satellite already has them baked in)
+      if (style !== 'satellite') add3DBuildings();
+      // Apply time of day if supported
+      if (STYLE_SUPPORTS_TOD[style]) applyTOD(currentTOD);
     });
 
-    const labels = { dark: '🌑 Dark', streets: '🗺 Standard', '3d': '🏙 3D Buildings', satellite: '🛰 Satellite' };
+    updateTODPills();
+    const labels = { dark: '🌑 Dark', streets: '🗺 Standard', satellite: '🛰 Satellite' };
     toast(labels[style]);
-    closeStyleSheet();
+  }
+
+  // ── TIME OF DAY ──
+  // Uses Mapbox Standard style's setConfigProperty light-preset
+  function setTOD(tod) {
+    if (!STYLE_SUPPORTS_TOD[currentStyle]) return;
+    currentTOD = tod;
+    applyTOD(tod);
+    document.querySelectorAll('.tod-pill').forEach(el => el.classList.remove('active'));
+    document.getElementById('tod-' + tod).classList.add('active');
+    const labels = { day: '☀️ Day', night: '🌙 Night', dawn: '🌅 Dawn', dusk: '🌆 Dusk' };
+    toast(labels[tod]);
+  }
+
+  function applyTOD(tod) {
+    try {
+      map.setConfigProperty('basemap', 'lightPreset', tod);
+    } catch(e) {}
+  }
+
+  function updateTODPills() {
+    const supported = STYLE_SUPPORTS_TOD[currentStyle];
+    document.querySelectorAll('.tod-pill').forEach(el => {
+      el.classList.toggle('disabled', !supported);
+    });
+    // Show active pill
+    if (supported) {
+      document.querySelectorAll('.tod-pill').forEach(el => el.classList.remove('active'));
+      document.getElementById('tod-' + currentTOD).classList.add('active');
+    }
+    // Dim section label
+    document.querySelector('.sheet-section-label:last-of-type').style.opacity = supported ? '1' : '0.35';
   }
 
   // ── LOCATE ──
@@ -475,10 +538,7 @@
     suggestionsEl.innerHTML = matches.map(p => `
       <div class="sug-item" onclick="selectPlace(${p.lng},${p.lat},'${p.name.replace(/'/g,"\\'")}','${p.addr.replace(/'/g,"\\'")}','${p.icon}')">
         <div class="sug-ico">${p.icon}</div>
-        <div>
-          <div class="sug-name">${p.name}</div>
-          <div class="sug-addr">${p.addr}</div>
-        </div>
+        <div><div class="sug-name">${p.name}</div><div class="sug-addr">${p.addr}</div></div>
       </div>`).join('');
     suggestionsEl.classList.add('visible');
   });
@@ -489,29 +549,21 @@
     closeSuggestions();
     searchInput.focus();
   }
-
   function closeSuggestions() { suggestionsEl.classList.remove('visible'); }
 
   // ── SELECT PLACE ──
   let activeMarker = null;
-
   function selectPlace(lng, lat, name, addr, icon) {
-    closeSuggestions();
-    closeStyleSheet();
-    searchInput.value = name;
-    searchInput.blur();
+    closeSuggestions(); closeStyleSheet();
+    searchInput.value = name; searchInput.blur();
     clearBtn.classList.add('visible');
-
     if (activeMarker) activeMarker.remove();
     const el = document.createElement('div');
     el.style.cssText = `width:36px;height:36px;background:#0a84ff;border-radius:50%;border:3px solid white;
-      display:flex;align-items:center;justify-content:center;font-size:16px;
-      box-shadow:0 3px 12px rgba(0,0,0,0.4);`;
+      display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 3px 12px rgba(0,0,0,0.4);`;
     el.textContent = icon;
-    activeMarker = new mapboxgl.Marker({ element: el, anchor: 'center' })
-      .setLngLat([lng, lat]).addTo(map);
+    activeMarker = new mapboxgl.Marker({ element: el, anchor: 'center' }).setLngLat([lng, lat]).addTo(map);
     map.flyTo({ center: [lng, lat], zoom: 15, pitch: 55, speed: 1.1 });
-
     document.getElementById('card-name').textContent = name;
     document.getElementById('card-addr').textContent = addr;
     document.getElementById('place-card').classList.add('visible');
