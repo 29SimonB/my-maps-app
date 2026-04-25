@@ -295,7 +295,7 @@
   <div class="sheet-divider"></div>
 
   <!-- Time of day section -->
-  <div class="sheet-section-label">Time of Day</div>
+  <div class="sheet-section-label" id="tod-section-label">Time of Day</div>
   <div class="tod-grid" id="tod-grid">
     <div class="tod-pill active" id="tod-day"   onclick="setTOD('day')">  <span class="tod-icon">☀️</span><span class="tod-label">Day</span></div>
     <div class="tod-pill"        id="tod-night" onclick="setTOD('night')"><span class="tod-icon">🌙</span><span class="tod-label">Night</span></div>
@@ -584,7 +584,7 @@
       document.getElementById('tod-' + currentTOD).classList.add('active');
     }
     // Dim section label
-    document.querySelector('.sheet-section-label:last-of-type').style.opacity = supported ? '1' : '0.35';
+    document.getElementById('tod-section-label').style.opacity = supported ? '1' : '0.35';
   }
 
   // ── LOCATE ──
