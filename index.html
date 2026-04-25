@@ -9,8 +9,8 @@
   <meta name="theme-color" content="#000000" />
   <title>Maps</title>
 
-  <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet" />
-  <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <style>
@@ -276,12 +276,12 @@
   <!-- Map style section -->
   <div class="sheet-section-label">Map Style</div>
 
-  <div class="style-option active" id="opt-dark" onclick="setStyle('dark')">
+  <div class="style-option" id="opt-dark" onclick="setStyle('dark')">
     <div class="style-thumb thumb-dark">🌑</div>
     <div class="style-info"><div class="style-name">Dark</div><div class="style-desc">Dark mode</div></div>
     <div class="style-check">✓</div>
   </div>
-  <div class="style-option" id="opt-streets" onclick="setStyle('streets')">
+  <div class="style-option active" id="opt-streets" onclick="setStyle('streets')">
     <div class="style-thumb thumb-streets">🗺</div>
     <div class="style-info"><div class="style-name">Standard</div><div class="style-desc">Classic streets</div></div>
     <div class="style-check">✓</div>
@@ -340,8 +340,6 @@
   mapboxgl.accessToken = 'pk.eyJ1IjoiMjlzaW1vbmIiLCJhIjoiY21udTlid201MHQ5azJycXl6cW03aHUyZCJ9.H5AM6Zs7Oi8uCvUm8oXIhA';
 
   // ── STYLE CONFIG ──
-  // Standard (streets-v12) supports light-preset: day/night/dawn/dusk
-  // Dark and Satellite do not support light presets
   const STYLE_URLS = {
     dark:      'mapbox://styles/mapbox/dark-v11',
     streets:   'mapbox://styles/mapbox/standard',
@@ -354,21 +352,149 @@
     satellite: false,
   };
 
-  let currentStyle = 'dark';
+  let currentStyle = 'streets';
   let currentTOD   = 'day';
   let buildings3D  = true;
 
+  // ── BUILDINGS CONFIG (from index3) ──
+  const BUILDINGS = [
+    {
+      id: 'modern_cityhall',
+      glbUrl: '/models/redPlant/modern_cityhall_LOD2_textured.glb',
+      clipGeojson: '/clip_areas/clip_modern_cityhall.json',
+      lng: 6.6118, lat: 51.83695,
+      scale: 1, rotX: 0, rotY: 0, rotZ: 0, vOffset: 0,
+    },
+    {
+      id: 'st_georg',
+      glbUrl: '/models/redPlant/church_st_georg_LOD0_textured.glb',
+      clipGeojson: '/clip_areas/clip_st_georg.json',
+      lng: 6.6134946, lat: 51.8382934,
+      scale: 0.99, rotX: 0, rotY: 0, rotZ: 84, vOffset: 0,
+    },
+    {
+      id: 'st_agnes',
+      glbUrl: '/models/redPlant/st-agnes.glb',
+      clipGeojson: '/clip_areas/clip_st_agnes.json',
+      lng: 6.61912, lat: 51.840229,
+      scale: 0.55, rotX: 0, rotY: 0, rotZ: 10, vOffset: 0,
+    },
+    {
+      id: 'cityhall',
+      glbUrl: '/models/redPlant/textured_scene (2).glb',
+      clipGeojson: '/clip_areas/clip_cityhall.json',
+      lng: 6.6146154, lat: 51.8381318,
+      scale: 0.7, rotX: 0, rotY: 0, rotZ: -92, vOffset: 0,
+    },
+    {
+      id: 'ostwall_terrassen',
+      glbUrl: '/models/kreis-borken/ostwall_terrassen-splitfix.glb',
+      clipGeojson: '/clip_areas/clip_ostwall_terrassen.json',
+      lng: 6.6219382, lat: 51.8405379,
+      scale: 1, rotX: 0, rotY: 0, rotZ: -2, vOffset: 0,
+    },
+    {
+      id: 'kreuzstrasse9',
+      glbUrl: '/models/kreis-borken/kreuzstr9-splitfix.glb',
+      lng: 6.6176722, lat: 51.8356627,
+      scale: 1, rotX: 0, rotY: 0, rotZ: 0, vOffset: 0,
+    },
+    {
+      id: 'kreuzstrasse5',
+      glbUrl: '/models/kreis-borken/kreuzstr5-splitfix.glb',
+      clipGeojson: '/clip_areas/clip_kreuz5.json',
+      lng: 6.6168249, lat: 51.8358164,
+      scale: 1, rotX: 0, rotY: 0, rotZ: -2, vOffset: 0,
+    },
+    {
+      id: 'kreuzstrasse3',
+      glbUrl: '/models/kreis-borken/kreuzstr3-splitfix.glb',
+      clipGeojson: '/clip_areas/clip_kreuz3.json',
+      lng: 6.6170503, lat: 51.8357220,
+      scale: 1, rotX: 0, rotY: 0, rotZ: -2, vOffset: 0,
+    },
+    {
+      id: 'alexa',
+      glbUrl: '/models/kreis-borken/alexa-splitfix.glb',
+      clipGeojson: '/clip_areas/clip_alexa.json',
+      lng: 6.6206865, lat: 51.8396402,
+      scale: 1, rotX: 0, rotY: 0, rotZ: -2, vOffset: 0,
+    },
+    {
+      id: 'gildhuis',
+      glbUrl: '/models/kreis-borken/gildhuis-splitfix.glb',
+      clipGeojson: '/clip_areas/clip_gildhuis.json',
+      lng: 6.6326815, lat: 51.8367033,
+      scale: 1, rotX: 0, rotY: 0, rotZ: -2, vOffset: 0,
+    },
+    {
+      id: 'uhland18',
+      glbUrl: '/models/kreis-borken/uhland18-splitfix.glb',
+      clipGeojson: '/clip_areas/clip_uhland18.json',
+      lng: 6.6330011, lat: 51.8370290,
+      scale: 1, rotX: 0, rotY: 0, rotZ: -2, vOffset: 0,
+    },
+    {
+      id: 'ludgerus_grundschule',
+      glbUrl: '/models/kreis-borken/ludgerus_grundschule-splitfix.glb',
+      lng: 6.5918566, lat: 51.8436262,
+      scale: 1, rotX: 0, rotY: 0, rotZ: 0, vOffset: 0,
+    },
+    {
+      id: 'autohaus_evers',
+      glbUrl: '/models/kreis-borken/autohaus_evers-splitfix.glb',
+      clipGeojson: '/clip_areas/clip_autohaus-evers.json',
+      lng: 6.6148416, lat: 51.8254656,
+      scale: 1, rotX: 0, rotY: 0, rotZ: -2, vOffset: 0,
+    },
+    {
+      id: 'huenting',
+      glbUrl: '/models/kreis-borken/huenting-splitfix.glb',
+      clipGeojson: '/clip_areas/clip_huenting.json',
+      lng: 6.6089186, lat: 51.8573380,
+      scale: 1, rotX: 0, rotY: 0, rotZ: -2, vOffset: 0,
+    },
+    {
+      id: 'breslauer13',
+      glbUrl: '/models/kreis-borken/breslauer13-splitfix.glb',
+      clipGeojson: '/clip_areas/clip_breslauer13.json',
+      lng: 6.6418568, lat: 51.8401611,
+      scale: 1, rotX: 0, rotY: 0, rotZ: -2, vOffset: 0,
+    },
+  ];
+
+  // ── PRESET COLOR MATCHING (from index3) ──
+  const PRESET_FALLBACKS = {
+    day:   { mix: 0.08, emissive: 0.0 },
+    dawn:  { mix: 0.20, emissive: 0.06 },
+    dusk:  { mix: 0.24, emissive: 0.10 },
+    night: { mix: 0.55, emissive: 0.35 },
+  };
+
+  const PRESET_FALLBACK_COLORS = {
+    day:   [220, 215, 205],
+    dawn:  [210, 175, 130],
+    dusk:  [170, 135, 190],
+    night: [38, 55, 95],
+  };
+
   const map = new mapboxgl.Map({
     container: 'map',
-    style: STYLE_URLS.dark,
+    style: STYLE_URLS.streets,
     center: [6.6145, 51.8382],
-    zoom: 17, pitch: 60, bearing: 0, antialias: true
+    zoom: 17, pitch: 60, bearing: 0, antialias: true,
   });
 
-  map.on('load', () => {
-    add3DBuildings();
+  // Update the active style button to 'streets' on load
+  document.getElementById('opt-streets').classList.add('active');
+  document.getElementById('opt-dark').classList.remove('active');
+
+  map.on('style.load', async () => {
+    applyTOD(currentTOD);
     updateTODPills();
-    loadCustomBuildings();
+    for (const b of BUILDINGS) {
+      await loadBuilding(b);
+    }
   });
 
   map.on('click', () => {
@@ -377,143 +503,89 @@
     closeStyleSheet();
   });
 
-  // ── 3D BUILDINGS ──
-  function add3DBuildings() {
-    if (!buildings3D) return;
-    const layers = map.getStyle().layers;
-    const labelLayer = layers.find(l => l.type === 'symbol' && l.layout?.['text-field']);
-    try {
-      map.addLayer({
-        id: '3d-buildings', source: 'composite', 'source-layer': 'building',
-        filter: ['==', 'extrude', 'true'], type: 'fill-extrusion', minzoom: 14,
-        paint: {
-          'fill-extrusion-color': '#1a1a2e',
-          'fill-extrusion-height': ['get', 'height'],
-          'fill-extrusion-base': ['get', 'min_height'],
-          'fill-extrusion-opacity': 0.85
-        }
-      }, labelLayer?.id);
-    } catch(e) {}
+  // ── LOAD BUILDING (index3 approach: clip layers + model layer with slot/rotation) ──
+  async function loadBuilding(b) {
+    // 1. Load clip GeoJSON and add clip layer to hide basemap buildings underneath
+    if (b.clipGeojson) {
+      try {
+        const res = await fetch(b.clipGeojson);
+        const clipData = await res.json();
+        map.addSource(`clip-src-${b.id}`, { type: 'geojson', data: clipData });
+        map.addLayer({
+          id: `clip-layer-${b.id}`,
+          type: 'clip',
+          source: `clip-src-${b.id}`,
+          layout: {
+            'clip-layer-types': ['model', 'symbol'],
+            'clip-layer-scope': ['basemap'],
+          },
+        });
+      } catch (e) {
+        console.warn(`[${b.id}] Could not load clip GeoJSON:`, e);
+      }
+    }
+
+    // 2. Register the GLB model
+    try { map.addModel(b.id, b.glbUrl); } catch (e) { console.warn(`[${b.id}] addModel:`, e); }
+
+    // 3. Add a Point source for placement
+    map.addSource(`model-src-${b.id}`, {
+      type: 'geojson',
+      data: {
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [b.lng, b.lat] },
+        properties: {},
+      },
+    });
+
+    // 4. Determine color from current preset
+    const fallback = PRESET_FALLBACKS[currentTOD] || PRESET_FALLBACKS.day;
+    const color = PRESET_FALLBACK_COLORS[currentTOD] || [220, 215, 205];
+    const [r, g, bl] = color;
+
+    // 5. Add the model layer
+    map.addLayer({
+      id: `model-layer-${b.id}`,
+      type: 'model',
+      slot: 'middle',
+      source: `model-src-${b.id}`,
+      layout: { 'model-id': b.id },
+      paint: {
+        'model-scale': [b.scale, b.scale, b.scale],
+        'model-rotation': [b.rotX, b.rotY, b.rotZ],
+        'model-translation': [0, 0, b.vOffset],
+        'model-opacity': 1,
+        'model-cast-shadows': true,
+        'model-color': `rgb(${r},${g},${bl})`,
+        'model-color-mix-intensity': 0,
+        'model-emissive-strength': fallback.emissive,
+        'model-cutoff-fade-range': 0,
+      },
+    });
+
+    console.log(`✅ Loaded: ${b.id}`);
   }
 
-  function remove3DBuildings() {
-    try { if (map.getLayer('3d-buildings')) map.removeLayer('3d-buildings'); } catch(e) {}
+  // ── RE-LOAD ALL BUILDINGS (after style change) ──
+  async function loadAllBuildings() {
+    for (const b of BUILDINGS) {
+      await loadBuilding(b);
+    }
   }
 
+  // ── 3D BUILDINGS (basemap fill-extrusion toggle) ──
   function toggle3D() {
     buildings3D = !buildings3D;
     const btn = document.getElementById('fab-3d');
     if (buildings3D) {
       btn.classList.add('active-btn');
-      add3DBuildings();
+      try { map.setConfigProperty('basemap', 'show3dObjects', true); } catch(e) {}
       toast('🏙 3D Buildings on');
     } else {
       btn.classList.remove('active-btn');
-      remove3DBuildings();
+      try { map.setConfigProperty('basemap', 'show3dObjects', false); } catch(e) {}
       toast('🏢 3D Buildings off');
     }
-  }
-
-  // ── CUSTOM GLB BUILDINGS ──
-  // Each entry: { geojson: 'filename.json', model: 'filename.glb' }
-  const CUSTOM_BUILDINGS = [
-    { geojson: 'clip_cityhall.json', model: 'cityhall_LOD0-v1.glb' },
-    // Add more buildings here as you upload them:
-    // { geojson: 'clip_building2.json', model: 'building2_LOD0-v1.glb' },
-  ];
-
-  // Base URL — same directory as index.html on GitHub Pages
-  const BASE_URL = window.location.href.replace(/\/[^/]*$/, '/');
-
-  async function loadCustomBuildings() {
-    for (const entry of CUSTOM_BUILDINGS) {
-      try {
-        // 1. Fetch the GeoJSON footprint
-        const res = await fetch(BASE_URL + entry.geojson);
-        const geojson = await res.json();
-
-        // 2. Compute centroid of the first feature's polygon
-        const coords = geojson.features[0].geometry.coordinates[0];
-        const centroid = coords.reduce(
-          (acc, c) => [acc[0] + c[0], acc[1] + c[1]],
-          [0, 0]
-        ).map(v => v / coords.length);
-
-        const modelId = entry.model;
-        const modelUrl = BASE_URL + entry.model;
-
-        // 3. Register the GLB model
-        map.addModel(modelId, modelUrl);
-
-        // 4. Add a GeoJSON source with the centroid as a Point feature
-        //    (Mapbox model layers need a Point geometry for placement)
-        const sourceId = 'src-' + modelId;
-        map.addSource(sourceId, {
-          type: 'geojson',
-          data: {
-            type: 'FeatureCollection',
-            features: [{
-              type: 'Feature',
-              geometry: { type: 'Point', coordinates: centroid },
-              properties: { modelId }
-            }]
-          }
-        });
-
-        // 5. Add the model layer
-        map.addLayer({
-          id: 'model-' + modelId,
-          type: 'model',
-          source: sourceId,
-          layout: {
-            'model-id': modelId,
-          },
-          paint: {
-            'model-opacity': 1,
-            'model-scale': [1, 1, 1],
-            'model-rotation': [0, 0, 0],
-            'model-translation': [0, 0, 0],
-            'model-cast-shadows': true,
-            'model-receive-shadows': true,
-          }
-        });
-
-        // 6. Hide the matching Mapbox default building footprint
-        //    by filtering it out of the fill-extrusion layer
-        hideDefaultBuilding(geojson);
-
-        console.log(`✅ Loaded: ${modelId} at [${centroid}]`);
-      } catch(e) {
-        console.warn(`⚠️ Could not load ${entry.model}:`, e);
-      }
-    }
-  }
-
-  function hideDefaultBuilding(geojson) {
-    // Get the OSM way ID from the GeoJSON and hide that building
-    // in Mapbox's default building layer
-    const osmId = geojson.features[0]?.properties?.['@id'];
-    if (!osmId) return;
-    const numericId = parseInt(osmId.replace('way/', ''));
-    if (!numericId) return;
-
-    // Hide in our custom fill-extrusion layer if it exists
-    try {
-      const existing = map.getLayer('3d-buildings');
-      if (existing) {
-        const currentFilter = map.getFilter('3d-buildings') || ['==', 'extrude', 'true'];
-        map.setFilter('3d-buildings', [
-          'all',
-          currentFilter,
-          ['!=', ['id'], numericId]
-        ]);
-      }
-    } catch(e) {}
-
-    // Also hide from Mapbox Standard style's built-in building layer
-    try {
-      map.setConfigProperty('basemap', 'hideBuildings', [numericId]);
-    } catch(e) {}
   }
 
   // ── STYLE SWITCHER ──
@@ -536,18 +608,13 @@
   function setStyle(style) {
     currentStyle = style;
 
-    // Update active option
     document.querySelectorAll('.style-option').forEach(el => el.classList.remove('active'));
     document.getElementById('opt-' + style).classList.add('active');
 
     map.setStyle(STYLE_URLS[style]);
-    map.once('styledata', () => {
-      // Re-apply 3D buildings (dark / streets only — satellite already has them baked in)
-      if (style !== 'satellite') add3DBuildings();
-      // Apply time of day if supported
+    map.once('style.load', async () => {
       if (STYLE_SUPPORTS_TOD[style]) applyTOD(currentTOD);
-      // Re-load custom GLB buildings
-      loadCustomBuildings();
+      await loadAllBuildings();
     });
 
     updateTODPills();
@@ -556,11 +623,20 @@
   }
 
   // ── TIME OF DAY ──
-  // Uses Mapbox Standard style's setConfigProperty light-preset
   function setTOD(tod) {
     if (!STYLE_SUPPORTS_TOD[currentStyle]) return;
     currentTOD = tod;
     applyTOD(tod);
+    // Update model colors to match new preset
+    const fallback = PRESET_FALLBACKS[tod] || PRESET_FALLBACKS.day;
+    const color = PRESET_FALLBACK_COLORS[tod] || [220, 215, 205];
+    const [r, g, b] = color;
+    for (const building of BUILDINGS) {
+      const layerId = `model-layer-${building.id}`;
+      if (!map.getLayer(layerId)) continue;
+      map.setPaintProperty(layerId, 'model-color', `rgb(${r},${g},${b})`);
+      map.setPaintProperty(layerId, 'model-emissive-strength', fallback.emissive);
+    }
     document.querySelectorAll('.tod-pill').forEach(el => el.classList.remove('active'));
     document.getElementById('tod-' + tod).classList.add('active');
     const labels = { day: '☀️ Day', night: '🌙 Night', dawn: '🌅 Dawn', dusk: '🌆 Dusk' };
@@ -568,9 +644,7 @@
   }
 
   function applyTOD(tod) {
-    try {
-      map.setConfigProperty('basemap', 'lightPreset', tod);
-    } catch(e) {}
+    try { map.setConfigProperty('basemap', 'lightPreset', tod); } catch(e) {}
   }
 
   function updateTODPills() {
@@ -578,12 +652,10 @@
     document.querySelectorAll('.tod-pill').forEach(el => {
       el.classList.toggle('disabled', !supported);
     });
-    // Show active pill
     if (supported) {
       document.querySelectorAll('.tod-pill').forEach(el => el.classList.remove('active'));
       document.getElementById('tod-' + currentTOD).classList.add('active');
     }
-    // Dim section label
     document.querySelector('.sheet-section-label:last-of-type').style.opacity = supported ? '1' : '0.35';
   }
 
