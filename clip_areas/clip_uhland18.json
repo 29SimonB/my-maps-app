@@ -1,0 +1,59 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-turbo",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2026-03-23T10:18:00Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1131089905",
+        "building": "apartments"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6.6329994,
+              51.8370333
+            ],
+            [
+              6.6330753,
+              51.8368841
+            ],
+            [
+              6.6329681,
+              51.8368632
+            ],
+            [
+              6.6329954,
+              51.8367446
+            ],
+            [
+              6.633066,
+              51.8367572
+            ],
+            [
+              6.6330713,
+              51.836745
+            ],
+            [
+              6.6333838,
+              51.8368074
+            ],
+            [
+              6.6332495,
+              51.8370521
+            ],
+            [
+              6.6329994,
+              51.8370333
+            ]
+          ]
+        ]
+      },
+      "id": "way/1131089905"
+    }
+  ]
+}

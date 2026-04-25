@@ -1,0 +1,74 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-turbo",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2026-03-23T09:59:31Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/742133938",
+        "addr:housenumber": "3;3a;5",
+        "addr:street": "Alter Ostwall",
+        "amenity": "social_facility",
+        "check_date": "2025-05-24",
+        "name": "AlexA Seniorenresidenz",
+        "operator": "AlexA Seniorendienste",
+        "social_facility": "group_home",
+        "social_facility:for": "senior"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6.6206865,
+              51.83964
+            ],
+            [
+              6.6207141,
+              51.839212
+            ],
+            [
+              6.6207629,
+              51.8392132
+            ],
+            [
+              6.620769,
+              51.8391507
+            ],
+            [
+              6.6207464,
+              51.8391503
+            ],
+            [
+              6.6207553,
+              51.838998
+            ],
+            [
+              6.6210315,
+              51.8390042
+            ],
+            [
+              6.6210217,
+              51.8391572
+            ],
+            [
+              6.6209913,
+              51.8391568
+            ],
+            [
+              6.6209596,
+              51.839647
+            ],
+            [
+              6.6206865,
+              51.83964
+            ]
+          ]
+        ]
+      },
+      "id": "way/742133938"
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-turbo",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2026-03-23T10:25:10Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/125611687",
+        "addr:city": "Bocholt",
+        "addr:housenumber": "29",
+        "addr:postcode": "46399",
+        "addr:street": "Casinowall",
+        "building": "yes"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6.6127261,
+              51.8370337
+            ],
+            [
+              6.6126643,
+              51.8369608
+            ],
+            [
+              6.6127929,
+              51.8369192
+            ],
+            [
+              6.6126831,
+              51.8367885
+            ],
+            [
+              6.612755,
+              51.8367767
+            ],
+            [
+              6.612646,
+              51.8366472
+            ],
+            [
+              6.6129123,
+              51.8365616
+            ],
+            [
+              6.613035,
+              51.8367068
+            ],
+            [
+              6.6131518,
+              51.8366693
+            ],
+            [
+              6.6131651,
+              51.8367021
+            ],
+            [
+              6.6131546,
+              51.8367038
+            ],
+            [
+              6.6131731,
+              51.836752
+            ],
+            [
+              6.6130846,
+              51.8367655
+            ],
+            [
+              6.6131867,
+              51.8368855
+            ],
+            [
+              6.6127261,
+              51.8370337
+            ]
+          ]
+        ]
+      },
+      "id": "way/125611687"
+    }
+  ]
+}

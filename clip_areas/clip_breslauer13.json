@@ -1,0 +1,55 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-turbo",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2026-03-23T10:45:34Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/874078055",
+        "addr:city": "Bocholt",
+        "addr:housenumber": "13",
+        "addr:postcode": "46397",
+        "addr:street": "Breslauer Straße",
+        "building": "yes"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6.6418555,
+              51.8401603
+            ],
+            [
+              6.6418698,
+              51.8397812
+            ],
+            [
+              6.6420403,
+              51.8397836
+            ],
+            [
+              6.6420372,
+              51.8398646
+            ],
+            [
+              6.6421182,
+              51.8398658
+            ],
+            [
+              6.6421069,
+              51.8401639
+            ],
+            [
+              6.6418555,
+              51.8401603
+            ]
+          ]
+        ]
+      },
+      "id": "way/874078055"
+    }
+  ]
+}

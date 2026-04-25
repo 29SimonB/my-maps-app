@@ -1,0 +1,66 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-turbo",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2026-03-23T08:59:47Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/603021554",
+        "addr:city": "Bocholt",
+        "addr:country": "DE",
+        "addr:housenumber": "5",
+        "addr:postcode": "46395",
+        "addr:street": "Kreuzstraße",
+        "building": "apartments",
+        "building:levels": "4",
+        "roof:levels": "1"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6.6168251,
+              51.8358123
+            ],
+            [
+              6.6170713,
+              51.8357724
+            ],
+            [
+              6.6171139,
+              51.8358676
+            ],
+            [
+              6.6172579,
+              51.8358436
+            ],
+            [
+              6.6173213,
+              51.8359842
+            ],
+            [
+              6.6170882,
+              51.8360244
+            ],
+            [
+              6.6170684,
+              51.835979
+            ],
+            [
+              6.6169119,
+              51.8360073
+            ],
+            [
+              6.6168251,
+              51.8358123
+            ]
+          ]
+        ]
+      },
+      "id": "way/603021554"
+    }
+  ]
+}

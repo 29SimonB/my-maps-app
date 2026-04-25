@@ -1,0 +1,43 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-turbo",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2026-03-23T10:54:44Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/254072830",
+        "building": "grandstand"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              6.6089202,
+              51.8573329
+            ],
+            [
+              6.6087816,
+              51.8572954
+            ],
+            [
+              6.6090509,
+              51.856916
+            ],
+            [
+              6.6091895,
+              51.8569536
+            ],
+            [
+              6.6089202,
+              51.8573329
+            ]
+          ]
+        ]
+      },
+      "id": "way/254072830"
+    }
+  ]
+}
