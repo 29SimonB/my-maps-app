@@ -405,7 +405,7 @@
       glbUrl: BASE_URL + 'models/redPlant/modern_cityhall_LOD2_textured.glb',
       clipGeojson: BASE_URL + 'clip_areas/clip_modern_cityhall.json',
       lng: 6.61416459, lat: 51.83748129,
-      scale: 0.910090, rotX: 0, rotY: 0, rotZ: -1.9060, vOffset: 0,
+      scale: 0.910090, rotX: 0, rotY: 0, rotZ: -1.9060, vOffset: 0, groundClipHeight: 0,
     },
     {
       id: 'st_georg',
@@ -542,6 +542,100 @@
   });
 
   // ── LOAD BUILDING ──
+  // Clip underground geometry in a temporary display copy; preserve the source GLB.
+const groundClippedModels = new Map();
+async function groundClippedModelUrl(uri, height = 0) {
+  const key = `${uri}|${height}`;
+  if (!groundClippedModels.has(key)) groundClippedModels.set(key, (async () => {
+    const response = await fetch(uri);
+    if (!response.ok) throw new Error(`Model HTTP ${response.status}`);
+    const input = await response.arrayBuffer(), header = new DataView(input);
+    if (header.getUint32(0, true) !== 0x46546c67) throw new Error('Expected GLB');
+    const jsonLength = header.getUint32(12, true);
+    const gltf = JSON.parse(new TextDecoder().decode(new Uint8Array(input, 20, jsonLength)));
+    const oldBin = new Uint8Array(input, 28 + jsonLength, header.getUint32(20 + jsonLength, true));
+    const data = new DataView(oldBin.buffer, oldBin.byteOffset, oldBin.byteLength);
+    const identity = () => [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1];
+    const multiply = (a,b) => Array.from({length:16}, (_,i) => {
+      const row=i%4, col=Math.floor(i/4); let v=0;
+      for(let k=0;k<4;k++) v+=a[k*4+row]*b[col*4+k]; return v;
+    });
+    function localMatrix(node) {
+      if(node.matrix) return node.matrix;
+      const [x,y,z,w]=node.rotation||[0,0,0,1], s=node.scale||[1,1,1], t=node.translation||[0,0,0];
+      return [(1-2*y*y-2*z*z)*s[0],(2*x*y+2*z*w)*s[0],(2*x*z-2*y*w)*s[0],0,
+        (2*x*y-2*z*w)*s[1],(1-2*x*x-2*z*z)*s[1],(2*y*z+2*x*w)*s[1],0,
+        (2*x*z+2*y*w)*s[2],(2*y*z-2*x*w)*s[2],(1-2*x*x-2*y*y)*s[2],0,...t,1];
+    }
+    const widths={SCALAR:1,VEC2:2,VEC3:3,VEC4:4};
+    const formats={5126:['getFloat32',4],5125:['getUint32',4],5123:['getUint16',2],5122:['getInt16',2],5121:['getUint8',1],5120:['getInt8',1]};
+    const accessorCache=new Map();
+    function readAccessor(id) {
+      if(accessorCache.has(id)) return accessorCache.get(id);
+      const a=gltf.accessors[id],v=gltf.bufferViews[a.bufferView],n=widths[a.type],fmt=formats[a.componentType];
+      if(!fmt||!n||a.sparse) throw new Error('Unsupported accessor');
+      const start=(v.byteOffset||0)+(a.byteOffset||0),stride=v.byteStride||n*fmt[1];
+      const values=Array.from({length:a.count},(_,i)=>Array.from({length:n},(_,j)=>{
+        let value=data[fmt[0]](start+i*stride+j*fmt[1],true);
+        if(a.normalized&&a.componentType!==5126) {
+          const signed=a.componentType===5120||a.componentType===5122;
+          value=Math.max(signed?-1:0,value/(signed?2**(fmt[1]*8-1)-1:2**(fmt[1]*8)-1));
+        } return value;
+      })); accessorCache.set(id,values);return values;
+    }
+    const chunks=[oldBin],nodes=[],meshes=[];
+    let length=oldBin.byteLength;
+    const oldMeshes=gltf.meshes;
+    function appendAccessor(values,type) {
+      const padding=(4-length%4)%4;if(padding){chunks.push(new Uint8Array(padding));length+=padding;}
+      const array=new Float32Array(values),bytes=new Uint8Array(array.buffer),view=gltf.bufferViews.length;
+      gltf.bufferViews.push({buffer:0,byteOffset:length,byteLength:bytes.length,target:34962});chunks.push(bytes);length+=bytes.length;
+      const a={bufferView:view,componentType:5126,count:values.length/widths[type],type};
+      if(type==='VEC3') {a.min=[Infinity,Infinity,Infinity];a.max=[-Infinity,-Infinity,-Infinity];for(let i=0;i<values.length;i++) {a.min[i%3]=Math.min(a.min[i%3],values[i]);a.max[i%3]=Math.max(a.max[i%3],values[i]);}}
+      gltf.accessors.push(a);return gltf.accessors.length-1;
+    }
+    function bakePrimitive(primitive,matrix) {
+      if(primitive.mode!==undefined&&primitive.mode!==4) throw new Error('Expected triangles');
+      const names=Object.keys(primitive.attributes),attributes=Object.fromEntries(names.map(n=>[n,readAccessor(primitive.attributes[n])]));
+      const indices=primitive.indices===undefined?attributes.POSITION.map((_,i)=>i):readAccessor(primitive.indices).map(v=>v[0]);
+      const transformed=attributes.POSITION.map((p,i)=>{
+        const out=Object.fromEntries(names.map(n=>[n,attributes[n][i].slice()]));
+        out.POSITION=[0,1,2].map(r=>matrix[r]*p[0]+matrix[4+r]*p[1]+matrix[8+r]*p[2]+matrix[12+r]);
+        if(out.NORMAL) {
+          const n=out.NORMAL,a=[matrix[0],matrix[1],matrix[2]],b=[matrix[4],matrix[5],matrix[6]],c=[matrix[8],matrix[9],matrix[10]];
+          const cross=(u,v)=>[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];
+          const bc=cross(b,c),ca=cross(c,a),ab=cross(a,b),sign=Math.sign(a.reduce((s,v,j)=>s+v*bc[j],0));
+          const v=bc.map((_,j)=>sign*(bc[j]*n[0]+ca[j]*n[1]+ab[j]*n[2])),norm=Math.hypot(...v)||1;out.NORMAL=v.map(x=>x/norm);
+        } return out;
+      });
+      let batch=Object.fromEntries(names.map(n=>[n,[]])),count=0;
+      function flush(){if(!count)return;const attrs={};for(const name of names)attrs[name]=appendAccessor(batch[name],gltf.accessors[primitive.attributes[name]].type);
+        meshes.push({primitives:[{attributes:attrs,material:primitive.material,mode:4}]});nodes.push({mesh:meshes.length-1});batch=Object.fromEntries(names.map(n=>[n,[]]));count=0;}
+      for(let i=0;i<indices.length;i+=3) {
+        const tri=indices.slice(i,i+3).map(j=>transformed[j]),poly=[];
+        for(let j=0;j<3;j++) {const a=tri[j],b=tri[(j+1)%3],insideA=a.POSITION[1]>=height,insideB=b.POSITION[1]>=height;
+          if(insideA)poly.push(a);
+          if(insideA!==insideB) {const t=(height-a.POSITION[1])/(b.POSITION[1]-a.POSITION[1]),v={};for(const name of names)v[name]=a[name].map((x,k)=>x+(b[name][k]-x)*t);v.POSITION[1]=height;poly.push(v);}
+        }
+        for(let j=1;j+1<poly.length;j++){if(count+3>65535)flush();for(const v of [poly[0],poly[j],poly[j+1]])for(const name of names)batch[name].push(...v[name]);count+=3;}
+      } flush();
+    }
+    function visit(id,parent){const node=gltf.nodes[id],world=multiply(parent,localMatrix(node));if(node.mesh!==undefined)for(const p of oldMeshes[node.mesh].primitives)bakePrimitive(p,world);for(const child of node.children||[])visit(child,world);}
+    for(const id of gltf.scenes[gltf.scene||0].nodes)visit(id,identity());
+    gltf.nodes=nodes;gltf.meshes=meshes;gltf.scenes=[{nodes:nodes.map((_,i)=>i)}];gltf.scene=0;
+    gltf.buffers=[{byteLength:length}];
+    let json=new TextEncoder().encode(JSON.stringify(gltf)),jsonSize=Math.ceil(json.length/4)*4,binSize=Math.ceil(length/4)*4;
+    const output=new ArrayBuffer(28+jsonSize+binSize),view=new DataView(output),bytes=new Uint8Array(output);
+    view.setUint32(0,0x46546c67,true);view.setUint32(4,2,true);view.setUint32(8,output.byteLength,true);
+    view.setUint32(12,jsonSize,true);view.setUint32(16,0x4e4f534a,true);bytes.fill(32,20,20+jsonSize);bytes.set(json,20);
+    view.setUint32(20+jsonSize,binSize,true);view.setUint32(24+jsonSize,0x004e4942,true);
+    let offset=28+jsonSize;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
+    return URL.createObjectURL(new Blob([output],{type:'model/gltf-binary'}));
+  })().catch(error=>{groundClippedModels.delete(key);throw error;}));
+  return groundClippedModels.get(key);
+}
+
+
   async function loadBuilding(b) {
     // 1. Clip layer — punches a hole in the basemap so OSM buildings don't show through
     if (b.clipGeojson) {
@@ -569,7 +663,7 @@
     }
 
     // 2. Register GLB model
-    try { map.addModel(b.id, b.glbUrl); } catch (e) { /* already registered */ }
+    try { map.addModel(b.id, b.groundClipHeight === undefined ? b.glbUrl : await groundClippedModelUrl(b.glbUrl, b.groundClipHeight)); } catch (e) { /* already registered */ }
 
     // 3. Point source for model placement
     if (!map.getSource(`model-src-${b.id}`)) {
