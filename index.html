@@ -594,6 +594,12 @@ async function groundClippedModelUrl(uri, height = 0) {
       if(type==='VEC3') {a.min=[Infinity,Infinity,Infinity];a.max=[-Infinity,-Infinity,-Infinity];for(let i=0;i<values.length;i++) {a.min[i%3]=Math.min(a.min[i%3],values[i]);a.max[i%3]=Math.max(a.max[i%3],values[i]);}}
       gltf.accessors.push(a);return gltf.accessors.length-1;
     }
+    function appendIndices(count) {
+      const padding=(4-length%4)%4;if(padding){chunks.push(new Uint8Array(padding));length+=padding;}
+      const array=Uint16Array.from({length:count},(_,i)=>i),bytes=new Uint8Array(array.buffer),view=gltf.bufferViews.length;
+      gltf.bufferViews.push({buffer:0,byteOffset:length,byteLength:bytes.length,target:34963});chunks.push(bytes);length+=bytes.length;
+      gltf.accessors.push({bufferView:view,componentType:5123,count,type:'SCALAR',min:[0],max:[count-1]});return gltf.accessors.length-1;
+    }
     function bakePrimitive(primitive,matrix) {
       if(primitive.mode!==undefined&&primitive.mode!==4) throw new Error('Expected triangles');
       const names=Object.keys(primitive.attributes),attributes=Object.fromEntries(names.map(n=>[n,readAccessor(primitive.attributes[n])]));
@@ -610,7 +616,7 @@ async function groundClippedModelUrl(uri, height = 0) {
       });
       let batch=Object.fromEntries(names.map(n=>[n,[]])),count=0;
       function flush(){if(!count)return;const attrs={};for(const name of names)attrs[name]=appendAccessor(batch[name],gltf.accessors[primitive.attributes[name]].type);
-        meshes.push({primitives:[{attributes:attrs,material:primitive.material,mode:4}]});nodes.push({mesh:meshes.length-1});batch=Object.fromEntries(names.map(n=>[n,[]]));count=0;}
+        meshes.push({primitives:[{attributes:attrs,indices:appendIndices(count),material:primitive.material,mode:4}]});nodes.push({mesh:meshes.length-1});batch=Object.fromEntries(names.map(n=>[n,[]]));count=0;}
       for(let i=0;i<indices.length;i+=3) {
         const tri=indices.slice(i,i+3).map(j=>transformed[j]),poly=[];
         for(let j=0;j<3;j++) {const a=tri[j],b=tri[(j+1)%3],insideA=a.POSITION[1]>=height,insideB=b.POSITION[1]>=height;
