@@ -542,7 +542,41 @@
   });
 
   // ── LOAD BUILDING ──
-  async function loadBuilding(b) {
+    // Mapbox's normal mapping produces black faces on the church's fine details.
+  // Keep the original colors, geometry and other materials; omit only its normal maps.
+  const churchMaterialUrls = new Map();
+  async function modelUrlForBuilding(building) {
+    if (building.id !== 'st_georg') return building.glbUrl;
+    if (!churchMaterialUrls.has(building.glbUrl)) {
+      const prepared = (async () => {
+        const response = await fetch(building.glbUrl);
+        if (!response.ok) throw new Error(`Church model: HTTP ${response.status}`);
+        const buffer = await response.arrayBuffer();
+        const view = new DataView(buffer);
+        if (view.getUint32(0, true) !== 0x46546c67 || view.getUint32(4, true) !== 2 || view.getUint32(16, true) !== 0x4e4f534a) throw new Error('Expected GLB 2 JSON chunk');
+        const length = view.getUint32(12, true);
+        const model = JSON.parse(new TextDecoder().decode(new Uint8Array(buffer, 20, length)));
+        let changed = false;
+        for (const material of model.materials || []) {
+          if (material.normalTexture) { delete material.normalTexture; changed = true; }
+        }
+        if (!changed) return building.glbUrl;
+        const json = new TextEncoder().encode(JSON.stringify(model));
+        const paddedLength = (json.length + 3) & ~3;
+        const header = new ArrayBuffer(20);
+        const output = new DataView(header);
+        output.setUint32(0, 0x46546c67, true); output.setUint32(4, 2, true);
+        output.setUint32(8, 20 + paddedLength + buffer.byteLength - 20 - length, true);
+        output.setUint32(12, paddedLength, true); output.setUint32(16, 0x4e4f534a, true);
+        const paddedJson = new Uint8Array(paddedLength); paddedJson.fill(32); paddedJson.set(json);
+        return URL.createObjectURL(new Blob([header, paddedJson, new Uint8Array(buffer, 20 + length)], { type: 'model/gltf-binary' }));
+      })().catch(error => { churchMaterialUrls.delete(building.glbUrl); throw error; });
+      churchMaterialUrls.set(building.glbUrl, prepared);
+    }
+    return churchMaterialUrls.get(building.glbUrl);
+  }
+
+async function loadBuilding(b) {
     // 1. Clip layer — punches a hole in the basemap so OSM buildings don't show through
     if (b.clipGeojson) {
       try {
@@ -569,7 +603,7 @@
     }
 
     // 2. Register GLB model
-    try { map.addModel(b.id, b.glbUrl); } catch (e) { /* already registered */ }
+    try { map.addModel(b.id, await modelUrlForBuilding(b)); } catch (e) { /* already registered */ }
 
     // 3. Point source for model placement
     if (!map.getSource(`model-src-${b.id}`)) {
