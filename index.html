@@ -296,8 +296,25 @@
     }
     .mapboxgl-popup-tip { display: none !important; }
   </style>
+<style>
+    #terrain-switch {
+      position: absolute; top: max(16px, env(safe-area-inset-top)); right: 16px; z-index: 30;
+      display: flex; align-items: center; gap: 9px; min-height: 44px; padding: 10px 14px;
+      border: 1px solid rgba(255,255,255,.18); border-radius: 24px;
+      background: rgba(28,28,30,.94); color: #fff; font: 500 13px/1.2 system-ui, sans-serif;
+      box-shadow: 0 2px 10px rgba(0,0,0,.22); cursor: pointer;
+    }
+    #terrain-switch:focus-visible { outline: 3px solid #73b7ff; outline-offset: 3px; }
+    #terrain-switch .terrain-track { width: 30px; height: 18px; border-radius: 9px; background: #666; padding: 3px; }
+    #terrain-switch .terrain-track::after { content: ''; display: block; width: 12px; height: 12px; border-radius: 50%; background: #fff; transition: transform .15s; }
+    #terrain-switch[aria-checked="true"] .terrain-track { background: #1683ff; }
+    #terrain-switch[aria-checked="true"] .terrain-track::after { transform: translateX(12px); }
+    #terrain-state { min-width: 23px; }
+
+</style>
 </head>
 <body>
+<button id="terrain-switch" type="button" role="switch" aria-label="Terrain" aria-checked="false" onclick="toggleTerrain()" title="Unterirdische Modellteile durch den Boden verdecken"><span>Terrain</span><span class="terrain-track" aria-hidden="true"></span><span id="terrain-state" aria-hidden="true">Aus</span></button>
 
 <div id="map"></div>
 <div id="toast"></div>
@@ -521,7 +538,40 @@
     night: [38, 55, 95],
   };
 
-  const map = new mapboxgl.Map({
+    // Keep terrain flat; it supplies ground depth without changing model assets.
+  const TERRAIN_PREFERENCE_KEY = 'maps-flat-terrain';
+  let terrainEnabled = false;
+  let terrainStyleReady = false;
+  try { terrainEnabled = localStorage.getItem(TERRAIN_PREFERENCE_KEY) === '1'; } catch (_) {}
+
+  function updateTerrainSwitch() {
+    const button = document.getElementById('terrain-switch');
+    button.setAttribute('aria-checked', String(terrainEnabled));
+    document.getElementById('terrain-state').textContent = terrainEnabled ? 'An' : 'Aus';
+  }
+
+  function applyTerrainSetting() {
+    if (terrainEnabled) {
+      if (!map.getSource('flat-terrain-dem')) {
+        map.addSource('flat-terrain-dem', {
+          type: 'raster-dem', url: 'mapbox://mapbox.mapbox-terrain-dem-v1', tileSize: 512, maxzoom: 14,
+        });
+      }
+      map.setTerrain({ source: 'flat-terrain-dem', exaggeration: 0 });
+    } else {
+      map.setTerrain(null);
+    }
+  }
+
+  function toggleTerrain() {
+    terrainEnabled = !terrainEnabled;
+    try { localStorage.setItem(TERRAIN_PREFERENCE_KEY, terrainEnabled ? '1' : '0'); } catch (_) {}
+    updateTerrainSwitch();
+    if (terrainStyleReady) applyTerrainSetting();
+  }
+  updateTerrainSwitch();
+
+const map = new mapboxgl.Map({
     container: 'map',
     style: STYLE_URLS.streets,
     center: [6.6145, 51.8382],
@@ -529,6 +579,8 @@
   });
 
   map.on('style.load', async () => {
+    terrainStyleReady = true;
+    applyTerrainSetting();
     if (STYLE_SUPPORTS_TOD[currentStyle]) applyTOD(currentTOD);
     updateTODPills();
     for (const b of BUILDINGS) {
@@ -690,6 +742,7 @@ async function loadBuilding(b) {
     currentStyle = style;
     document.querySelectorAll('.style-option').forEach(el => el.classList.remove('active'));
     document.getElementById('opt-' + style).classList.add('active');
+    terrainStyleReady = false;
     map.setStyle(STYLE_URLS[style]);
     map.once('style.load', async () => {
       if (STYLE_SUPPORTS_TOD[style]) applyTOD(currentTOD);
